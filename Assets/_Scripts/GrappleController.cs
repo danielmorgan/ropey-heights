@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 public enum HookState {
-    Disabled,
+    Inactive,
     Firing,
     Returning,
     Attached,
@@ -16,17 +16,21 @@ public class GrappleController : MonoBehaviour
     private SpriteRenderer hook;
 
     [SerializeField]
-    private float speed = 4f;
+    private float speed = 25f;
     [SerializeField]
-    private float maxDistance = 5f;
+    private FloatValue grappleRange;
 
-    public HookState state { get; private set; } = HookState.Disabled;
+    [SerializeField]
+    public HookState state { get; private set; } = HookState.Inactive;
 
-    private float t;
+    private float t = 0;
     private Vector2 initialHookPosition;
     private Vector2 origin;
     private Vector2 target;
     private bool shouldAttach;
+    private float distance {
+        get { return Vector2.Distance(origin, target); }
+    }
 
     private void Awake() {
         aimController = GetComponent<AimController>();
@@ -35,21 +39,28 @@ public class GrappleController : MonoBehaviour
 
     public void HandleGrappleFired(InputAction.CallbackContext context)
     {
-        if (context.performed) {
-            if (state != HookState.Disabled) {
-                Cancel();
-            }
+        if (!context.performed) return;
+
+        if (state != HookState.Inactive) {
+            state = HookState.Returning;
+            return;
+        }
+
+        if (aimController.aimDirection != Vector2.zero) {
             Fire();
         }
     }
 
     private void Update() {
-        if (state == HookState.Attached) return;
+        if (state == HookState.Inactive) return;
 
-        if (state != HookState.Returning) {
-            t += speed * Time.deltaTime;
-        } else {
-            t -= speed * Time.deltaTime;
+        Debug.DrawLine(origin, target, Color.black);
+
+        if (state == HookState.Firing) {
+            t += speed / distance * Time.deltaTime;
+        }
+        if (state == HookState.Returning) {
+            t -= speed / distance * Time.deltaTime;
         }
 
         hook.transform.position = Vector2.Lerp(origin, target, t);
@@ -58,11 +69,11 @@ public class GrappleController : MonoBehaviour
             state = HookState.Attached;
             return;
         }
-        
-        if (state != HookState.Returning && Vector2.Distance(origin, hook.transform.position) >= maxDistance - 0.1f) {
+
+        if (state != HookState.Returning && Vector2.Distance(origin, hook.transform.position) >= grappleRange.value - 0.1f) {
             state = HookState.Returning;
         } else if (state == HookState.Returning && Vector2.Distance(origin, hook.transform.position) <= 0.1f) {
-            Cancel();
+            Deactivate();
         }
     }
 
@@ -71,16 +82,26 @@ public class GrappleController : MonoBehaviour
         hook.gameObject.SetActive(true);
         state = HookState.Firing;
         origin = hook.transform.position;
-        shouldAttach = true;
-        target = origin + (aimController.aimDirection * maxDistance);
-        
-        Debug.DrawLine(origin, target, Color.black, 1f);
+        t = 0;
+
+        if (aimController.target != null) {
+            target = (Vector2) aimController.target;
+            shouldAttach = true;
+        } else {
+            target = origin + (aimController.aimDirection * grappleRange.value);
+            shouldAttach = false;
+        }
+
+        Vector2 toTarget = target - origin;
+        float angle = Mathf.Atan2(toTarget.y, toTarget.x) * Mathf.Rad2Deg;
+        float correctedAngle = angle - 90f;
+        hook.transform.rotation = Quaternion.Euler(0, 0, correctedAngle);
     }
 
-    private void Cancel()
+    private void Deactivate()
     {
         hook.transform.position = initialHookPosition;
         hook.gameObject.SetActive(false);
-        state = HookState.Disabled;
+        state = HookState.Inactive;
     }
 }

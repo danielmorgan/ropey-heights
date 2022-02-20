@@ -5,8 +5,11 @@ public class AimController : MonoBehaviour
 {
     [SerializeField]
     private SpriteRenderer reticle;
+    [SerializeField]
+    private FloatValue grappleRange;
 
     public Vector2 aimDirection { get; private set; }
+    public Vector2? target { get; private set; }
     
     private LayerMask terrainMask;
 
@@ -26,20 +29,23 @@ public class AimController : MonoBehaviour
         // Not aiming
         if (aimDirection.magnitude < 0.1f) {
             aimDirection = Vector2.zero;
+            target = null;
             reticle.gameObject.SetActive(false);
             return;
         }
 
-        // Aiming at terrain
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, aimDirection, 999f, terrainMask);
+        // Aiming at something hookable
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, aimDirection, grappleRange.value, terrainMask);
         if (hit.collider != null && hit.collider.gameObject.tag == "Hookable") {
             reticle.transform.position = hit.point;
+            target = hit.point;
             Debug.DrawLine(transform.position, hit.point, Color.red);
             return;
         }
 
-        // Aiming at blank space
-        reticle.transform.position = (Vector2) transform.position + (aimDirection * 5f);
-        Debug.DrawLine(transform.position, reticle.transform.position, Color.red);
+        // Aiming at nothing
+        reticle.transform.position = (Vector2) transform.position + (aimDirection * grappleRange.value);
+        target = null;
+        Debug.DrawLine(transform.position, reticle.transform.position, Color.magenta);
     }
 }

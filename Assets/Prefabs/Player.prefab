@@ -199,8 +199,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 427330595
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 3ca009250657613418c98b2550463b15, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -579,6 +579,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   reticle: {fileID: 795365852}
+  grappleRange: {fileID: 11400000, guid: 990a49eab18e637409d56eafb57e5d02, type: 2}
 --- !u!114 &5447561982945368333
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -592,5 +593,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hook: {fileID: 670754218}
-  speed: 4
-  maxDistance: 5
+  speed: 25
+  grappleRange: {fileID: 11400000, guid: 990a49eab18e637409d56eafb57e5d02, type: 2}
+  t: 0
