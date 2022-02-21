@@ -5,6 +5,7 @@ TagManager:
   serializedVersion: 2
   tags:
   - Hookable
+  - Wrappable
   layers:
   - Default
   - TransparentFX
@@ -39,17 +40,20 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Default
-    uniqueID: 0
-    locked: 0
   - name: Background
     uniqueID: 4231539109
     locked: 0
-  - name: Collidable Terrain
+  - name: World
     uniqueID: 3033257839
+    locked: 0
+  - name: Default
+    uniqueID: 0
     locked: 0
   - name: Rope
     uniqueID: 427330595
+    locked: 0
+  - name: Player
+    uniqueID: 3471372361
     locked: 0
   - name: Player UI
     uniqueID: 1228596137
