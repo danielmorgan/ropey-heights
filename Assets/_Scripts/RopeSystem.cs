@@ -15,10 +15,14 @@ public class RopeSystem : MonoBehaviour
 
     private Vector2 ropeOrigin { get => grappleController.hook.ropeOrigin; }
     private Vector2 playerPos { get => (Vector2) this.transform.position; }
-    private List<Vector3> ropePositions = new List<Vector3>(1); // TODO: Do these need initial size?
-    private Dictionary<Vector3, int> wrapPoints = new Dictionary<Vector3, int>(1); // TODO: Do these need initial size?
-    [SerializeField] private bool distanceSet; // TODO: Remove [SerializeField]
+    private Vector2 anchorPos { get => (Vector2) anchor.transform.position; }
+    private List<Vector3> ropePositions = new List<Vector3>();
+    private Dictionary<Vector3, int> wrapPoints = new Dictionary<Vector3, int>();
+    private bool distanceSet;
+    [SerializeField] public float ropeLength { get; private set; } = 0f;
 
+    [SerializeField]
+    private FloatValue grappleRange;
     private float ropeCollisionOffset = 0.25f;
 
     private void Awake()
@@ -30,6 +34,7 @@ public class RopeSystem : MonoBehaviour
 
         // Set up anchor point for DistanceJoint2D
         anchor = new GameObject("Anchor", typeof(Rigidbody2D));
+        anchor.SetActive(false);
         Rigidbody2D anchorRb = anchor.GetComponent<Rigidbody2D>();
         anchorRb.isKinematic = true;
         joint.connectedBody = anchorRb;
@@ -47,6 +52,10 @@ public class RopeSystem : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Render
+        lineRenderer.positionCount = ropePositions.Count;
+        lineRenderer.SetPositions(ropePositions.ToArray());
+
         ropePositions.Clear();
 
         if (grappleController.state == GrappleState.Inactive) {
@@ -56,20 +65,15 @@ public class RopeSystem : MonoBehaviour
 
         // Add start point
         ropePositions.Add(ropeOrigin);
-
         // Add wrapped points
         Wrap();
         ropePositions.AddRange(wrapPoints.Keys);
-
         // Add end point
         ropePositions.Add(playerPos);
-
         // Remove any rope positions that have come unwrapped
         Unwrap();
 
-        // Render
-        lineRenderer.positionCount = ropePositions.Count;
-        lineRenderer.SetPositions(ropePositions.ToArray());
+        ropeLength = CalculateRopeLength();
     }
 
     private void Wrap()
@@ -80,9 +84,8 @@ public class RopeSystem : MonoBehaviour
         if (length > ropeCollisionOffset) {
             // Check for when the rope would pass through an object, but offset the ray from the player and the anchor point so we don't cause
             // it to get a hit when the rope is really short and the player is within floating-point error distance of the terrain.
-            Vector2 rayOrigin = playerPos - ((playerPos - ropeOrigin).normalized * ropeCollisionOffset);
-            Vector2 rayDestination = ropeOrigin - ((ropeOrigin - playerPos).normalized * ropeCollisionOffset);
-            Debug.DrawLine(rayOrigin, rayDestination, Color.red);
+            Vector2 rayOrigin = playerPos - ((playerPos - anchorPos).normalized * ropeCollisionOffset);
+            Vector2 rayDestination = anchorPos - ((anchorPos - playerPos).normalized * ropeCollisionOffset);
             RaycastHit2D hit = Physics2D.Linecast(rayOrigin, rayDestination, terrainMask);
             if (hit.collider != null) {
                 Vector2 closestVertex = FindClosestVertexOnCompositeCollider2D(hit);
@@ -140,23 +143,30 @@ public class RopeSystem : MonoBehaviour
 
     private void UpdateAnchor(Vector2 newAnchorPoint)
     {
+        anchor.SetActive(true);
         joint.enabled = true;
-        Debug.Log("update anchor: " + newAnchorPoint.ToString());
+
         anchor.transform.position = newAnchorPoint;
 
         if (!distanceSet) {
-            joint.distance = Vector2.Distance(playerPos, newAnchorPoint) - 0.1f;
+            float desiredDistance = Vector2.Distance(playerPos, newAnchorPoint) - 0.25f;
+            joint.distance = Mathf.Max(desiredDistance, 0.25f);
             distanceSet = true;
         }
     }
 
-    private void Reset()
+    public void Reset()
     {
-        // Debug.Log("Reset");
         joint.enabled = false;
+
+        anchor.SetActive(false);
+
+        distanceSet = false;
 
         ropePositions.Clear();
         wrapPoints.Clear();
+
+        grappleController.Deactivate();
     }
 
 
@@ -179,5 +189,16 @@ public class RopeSystem : MonoBehaviour
             }
         }
         return _closestVertex;
+    }
+
+    private float CalculateRopeLength()
+    {
+        float length = 0f;
+
+        for (int i = 1; i < ropePositions.Count; i++) {
+            length += Vector2.Distance(ropePositions[i - 1], ropePositions[i]);
+        }
+
+        return length;
     }
 }

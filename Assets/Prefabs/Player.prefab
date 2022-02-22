@@ -16,7 +16,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &795365851
 Transform:
   m_ObjectHideFlags: 0
@@ -25,7 +25,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 795365850}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.24, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -498,6 +498,38 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 85f6274c-f8dd-4b2f-b0f6-be8836ef775a
     m_ActionName: Player/Rappel[/XInputControllerWindows/leftStick/y,/XInputControllerWindows1/leftStick/y]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 8184265132436504796}
+        m_TargetAssemblyTypeName: AimController, Assembly-CSharp
+        m_MethodName: HandlePointAim
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: d9cb2085-1fe4-469d-8786-2fd291ecccad
+    m_ActionName: Player/PointAim[/Mouse/position]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3503330359363446836}
+        m_TargetAssemblyTypeName: MovementController, Assembly-CSharp
+        m_MethodName: HandleRelease
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 80dd2d87-5ae4-444a-b4b8-3db036b36bcf
+    m_ActionName: Player/Release[/Keyboard/space]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
@@ -515,6 +547,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d68aeddb56c1b704898ad9f543ccd3b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mainCam: {fileID: 0}
   reticle: {fileID: 795365852}
   grappleRange: {fileID: 11400000, guid: 990a49eab18e637409d56eafb57e5d02, type: 2}
 --- !u!114 &5447561982945368333
@@ -529,7 +562,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ac9be51e54ea2346bd8bb3393d3993b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hookPrefab: {fileID: 9064559489362499691, guid: e098fbf46bb3a4843bbcbaadceac3ad1, type: 3}
+  hookPrefab: {fileID: 2118447969835520288, guid: e098fbf46bb3a4843bbcbaadceac3ad1, type: 3}
   grappleRange: {fileID: 11400000, guid: 990a49eab18e637409d56eafb57e5d02, type: 2}
   GrappleAttached:
     m_PersistentCalls:
@@ -573,7 +606,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94c5c04e32987ed49a50445d3fb18a1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  distanceSet: 0
+  grappleRange: {fileID: 11400000, guid: 990a49eab18e637409d56eafb57e5d02, type: 2}
 --- !u!114 &3503330359363446836
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -586,3 +619,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30501104a5581b543954a01f39d5795d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxRopeLength: {fileID: 11400000, guid: d924f25d33e85084187d850bf5d22318, type: 2}

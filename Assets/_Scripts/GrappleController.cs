@@ -49,7 +49,6 @@ public class GrappleController : MonoBehaviour
 
         if (state != GrappleState.Inactive) {
             Release();
-            return;
         }
 
         if (aimController.aimDirection != Vector2.zero) {
@@ -126,8 +125,9 @@ public class GrappleController : MonoBehaviour
         state = GrappleState.Attached;
     }
 
-    private void Deactivate()
+    public void Deactivate()
     {
+        t = 0;
         hook.transform.localPosition = Vector2.zero;
         hook.gameObject.SetActive(false);
         state = GrappleState.Inactive;

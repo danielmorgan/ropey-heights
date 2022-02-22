@@ -7,8 +7,10 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(DistanceJoint2D))]
 public class MovementController : MonoBehaviour
 {
-    private float swingForce = 2f;
-    private float rappelSpeed = 3f;
+    private float swingForce = 5f;
+    private float rappelSpeed = 5f;
+    [SerializeField]
+    private FloatValue maxRopeLength;
 
     private Rigidbody2D rb;
     private GrappleController grappleController;
@@ -20,6 +22,8 @@ public class MovementController : MonoBehaviour
     private float x;
     private float y;
 
+    private bool anchorBelowPlayer;
+
     private void Awake()
     {
         rb = GetComponentInParent<Rigidbody2D>();
@@ -30,12 +34,19 @@ public class MovementController : MonoBehaviour
 
     public void HandleSwing(InputAction.CallbackContext context)
     {
-        if (!context.performed) {
-            x = 0;
+        if (context.started) {
             return;
         }
 
-        x = context.ReadValue<float>();
+        if (context.performed) {
+            x = context.ReadValue<float>();
+            return;
+        }
+
+        if (context.canceled) {
+            x = 0;
+            return;
+        }
     }
 
     public void HandleRappel(InputAction.CallbackContext context)
@@ -48,22 +59,42 @@ public class MovementController : MonoBehaviour
         y = context.ReadValue<float>();
     }
 
+    public void HandleRelease(InputAction.CallbackContext context)
+    {
+        if (context.performed) {
+            ropeSystem.Reset();
+        }
+    }
+
     private void Update()
     {
         if (grappleController.state != GrappleState.Attached) return;
 
-        // Swing
         Vector2 direction = (anchorPos - playerPos).normalized;
-        Vector2 perpendicular;
-        if (x > 0) {
-            perpendicular = new Vector2(direction.y, -direction.x);
-        } else {
-            perpendicular = new Vector2(-direction.y, direction.x);
+        anchorBelowPlayer = Mathf.Sign(direction.y) > 0;
+
+        // Swing
+        if (x != 0) {
+            Vector2 perpendicular = Vector2.zero;
+            if (!anchorBelowPlayer && x > 0) {
+                perpendicular = new Vector2(-direction.y, direction.x);
+            } else if (!anchorBelowPlayer && x < 0) {
+                perpendicular = new Vector2(direction.y, -direction.x);
+            } else if (anchorBelowPlayer && x > 0) {
+                perpendicular = new Vector2(direction.y, -direction.x);
+            } else if (anchorBelowPlayer && x < 0) {
+                perpendicular = new Vector2(-direction.y, direction.x);
+            }
+            Debug.DrawRay(playerPos, perpendicular, Color.black);
+            rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce);
         }
-        Debug.DrawRay(playerPos, perpendicular, Color.black);
-        rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce);
+        // rb.AddForce(rb.velocity * -0.1f);
 
         // Rappel
-        joint.distance -= y * rappelSpeed * Time.deltaTime;
+        if (y != 0) {
+            float desiredDistance = joint.distance;
+            desiredDistance += (y * rappelSpeed * Time.deltaTime);
+            joint.distance = Mathf.Clamp(desiredDistance, 0.2f, maxRopeLength.value);
+        }
     }
 }
