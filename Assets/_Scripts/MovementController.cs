@@ -7,7 +7,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(DistanceJoint2D))]
 public class MovementController : MonoBehaviour
 {
-    private float swingForce = 5f;
+    private float swingForce = 500f;
     private float rappelSpeed = 5f;
     [SerializeField]
     private FloatValue maxRopeLength;
@@ -86,7 +86,7 @@ public class MovementController : MonoBehaviour
                 perpendicular = new Vector2(-direction.y, direction.x);
             }
             Debug.DrawRay(playerPos, perpendicular, Color.black);
-            rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce); // TODO: Take into account Time.deltaTime
+            rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce * Time.deltaTime);
         }
         // rb.AddForce(rb.velocity * -0.1f);
 

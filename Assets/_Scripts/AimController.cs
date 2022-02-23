@@ -8,24 +8,33 @@ public class AimController : MonoBehaviour
     [SerializeField]
     private SpriteRenderer reticle;
     [SerializeField]
+    private LineRenderer aimLine;
+    [SerializeField]
     private FloatValue grappleRange;
+    [SerializeField]
+    private Color defaultLineColor = Color.white;
+    [SerializeField]
+    private Color validTargetLineColor = Color.green;
 
     private Vector2 playerPos { get => (Vector2) this.transform.position; }
     public Vector2 aimDirection { get; private set; }
     public Vector2? target { get; private set; }
-    Vector2 aimPoint;
+    private Vector2 aimPoint;
     
     private LayerMask terrainMask;
+    private Material aimLineMaterial;
 
-    void Awake()
+    private void Awake()
     {
         terrainMask = LayerMask.GetMask("Collidable Terrain");
+        aimLineMaterial = aimLine.GetComponent<Renderer>().material;
     }
 
     public void HandleAim(InputAction.CallbackContext context)
     {
         aimDirection = context.ReadValue<Vector2>();
         reticle.gameObject.SetActive(true);
+        aimLine.gameObject.SetActive(true);
     }
 
     public void HandlePointAim(InputAction.CallbackContext context)
@@ -34,6 +43,7 @@ public class AimController : MonoBehaviour
         aimPoint = mainCam.ScreenToWorldPoint(aimPoint);
         aimDirection = (aimPoint - playerPos).normalized;
         reticle.gameObject.SetActive(true);
+        aimLine.gameObject.SetActive(true);
     }
 
     private void Update()
@@ -43,6 +53,8 @@ public class AimController : MonoBehaviour
             aimDirection = Vector2.zero;
             target = null;
             reticle.gameObject.SetActive(false);
+            aimLine.gameObject.SetActive(false);
+            aimLine.positionCount = 0;
             return;
         }
 
@@ -50,19 +62,20 @@ public class AimController : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(playerPos, aimDirection, grappleRange.value, terrainMask);
         if (hit.collider != null && hit.collider.gameObject.tag == "Hookable") {
             reticle.transform.position = hit.point;
+            aimLine.positionCount = 2;
+            aimLine.SetPosition(0, playerPos);
+            aimLine.SetPosition(1, hit.point);
+            aimLineMaterial.SetColor("_Color", validTargetLineColor);
             target = hit.point;
-            Debug.DrawLine(playerPos, hit.point, Color.red);
             return;
         }
 
         // Aiming at nothing
         reticle.transform.position = playerPos + (aimDirection * grappleRange.value);
+        aimLine.positionCount = 2;
+        aimLine.SetPosition(0, playerPos);
+        aimLine.SetPosition(1, reticle.transform.position);
+        aimLineMaterial.SetColor("_Color", defaultLineColor);
         target = null;
-        Debug.DrawLine(playerPos, reticle.transform.position, Color.magenta);
-    }
-
-    private void OnDrawGizmos() {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(aimPoint, 0.25f);
     }
 }
