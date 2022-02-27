@@ -229,6 +229,7 @@ GameObject:
   - component: {fileID: 3575189987748440994}
   - component: {fileID: 8167517506015029285}
   - component: {fileID: 5550055250743740942}
+  - component: {fileID: 5447561982945368345}
   - component: {fileID: 4968116352766638850}
   - component: {fileID: 5447561982945368326}
   - component: {fileID: 5447561982945368325}
@@ -449,6 +450,22 @@ DistanceJoint2D:
   m_AutoConfigureDistance: 0
   m_Distance: 0.005
   m_MaxDistanceOnly: 0
+--- !u!58 &5447561982945368345
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3575189987748440992}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 1.03125
 --- !u!50 &4968116352766638850
 Rigidbody2D:
   serializedVersion: 4
@@ -463,7 +480,7 @@ Rigidbody2D:
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0
   m_GravityScale: 2
   m_Material: {fileID: 6200000, guid: 606a52b8260147b4e84d6c1661667349, type: 2}
   m_Interpolate: 0

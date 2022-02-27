@@ -149,8 +149,8 @@ public class RopeSystem : MonoBehaviour
         anchor.transform.position = newAnchorPoint;
 
         if (!distanceSet) {
-            float desiredDistance = Vector2.Distance(playerPos, newAnchorPoint) - 0.25f;
-            joint.distance = Mathf.Max(desiredDistance, 0.25f);
+            float desiredDistance = Vector2.Distance(playerPos, newAnchorPoint);
+            joint.distance = desiredDistance;
             distanceSet = true;
         }
     }

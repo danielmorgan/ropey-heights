@@ -121,7 +121,7 @@ public class GrappleController : MonoBehaviour
     private void Attach()
     {
         shouldAttach = false;
-        GrappleAttached.Invoke(target);
+        GrappleAttached.Invoke(hook.ropeOrigin);
         state = GrappleState.Attached;
     }
 

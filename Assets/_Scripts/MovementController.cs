@@ -7,8 +7,9 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(DistanceJoint2D))]
 public class MovementController : MonoBehaviour
 {
-    private float swingForce = 500f;
-    private float rappelSpeed = 5f;
+    private float swingForce = 15f;
+    private float rappelSpeed = 0.2f;
+    private float pushOffForce = 15f;
     [SerializeField]
     private FloatValue maxRopeLength;
 
@@ -21,8 +22,13 @@ public class MovementController : MonoBehaviour
     private Vector2 anchorPos { get => (Vector2) ropeSystem.anchor.transform.position; }
     private float x;
     private float y;
-
+    
     private bool anchorBelowPlayer;
+    private float shouldJumpBuffer;
+
+    private Vector2 collisionPoint;
+    private Vector2 collisionNormal;
+    private float collidedRecently;
 
     private void Awake()
     {
@@ -66,35 +72,111 @@ public class MovementController : MonoBehaviour
         }
     }
 
-    private void Update()
+    public void HandleJump(InputAction.CallbackContext context)
     {
-        if (grappleController.state != GrappleState.Attached) return;
+        if (context.performed) {
+            shouldJumpBuffer = 0.2f;
+        }
+    }
 
-        Vector2 direction = (anchorPos - playerPos).normalized;
-        anchorBelowPlayer = Mathf.Sign(direction.y) > 0;
+    private void FixedUpdate()
+    {
+        // Reset collisions
+        collidedRecently -= Time.fixedDeltaTime;
+        if (collidedRecently < 0) {
+            collidedRecently = 0;
+            collisionPoint = Vector2.zero;
+            collisionNormal = Vector2.zero;
+        }
+
+        // Jump
+        if (shouldJumpBuffer > 0) {
+            shouldJumpBuffer -= Time.fixedDeltaTime;
+            if (collisionNormal != Vector2.zero) {
+                rb.AddForce(collisionNormal * pushOffForce, ForceMode2D.Impulse);
+                shouldJumpBuffer = 0;
+            }
+        } else {
+            shouldJumpBuffer = 0;
+        }
+     
+        if (grappleController.state != GrappleState.Attached) {
+            return;
+        }
 
         // Swing
         if (x != 0) {
-            Vector2 perpendicular = Vector2.zero;
-            if (!anchorBelowPlayer && x > 0) {
-                perpendicular = new Vector2(-direction.y, direction.x);
-            } else if (!anchorBelowPlayer && x < 0) {
-                perpendicular = new Vector2(direction.y, -direction.x);
-            } else if (anchorBelowPlayer && x > 0) {
-                perpendicular = new Vector2(direction.y, -direction.x);
-            } else if (anchorBelowPlayer && x < 0) {
-                perpendicular = new Vector2(-direction.y, direction.x);
-            }
-            Debug.DrawRay(playerPos, perpendicular, Color.black);
-            rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce * Time.deltaTime);
+            Swing(x);
         }
         // rb.AddForce(rb.velocity * -0.1f);
 
-        // Rappel
         if (y != 0) {
-            float desiredDistance = joint.distance;
-            desiredDistance += (y * rappelSpeed * Time.deltaTime);
-            joint.distance = Mathf.Clamp(desiredDistance, 0.2f, maxRopeLength.value);
+            Rappel(y);
         }
     }
+
+    private void Swing(float x)
+    {
+        Vector2 direction = (anchorPos - playerPos).normalized;
+        anchorBelowPlayer = Mathf.Sign(direction.y) > 0;
+        Vector2 perpendicular = Vector2.zero;
+        if (!anchorBelowPlayer && x > 0) {
+            perpendicular = new Vector2(-direction.y, direction.x);
+        } else if (!anchorBelowPlayer && x < 0) {
+            perpendicular = new Vector2(direction.y, -direction.x);
+        } else if (anchorBelowPlayer && x > 0) {
+            perpendicular = new Vector2(direction.y, -direction.x);
+        } else if (anchorBelowPlayer && x < 0) {
+            perpendicular = new Vector2(-direction.y, direction.x);
+        }
+        // Debug.DrawRay(playerPos, perpendicular, Color.black);
+        rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce);
+    }
+
+    private void Rappel(float y)
+    {
+        float desiredDistance = joint.distance + (y * rappelSpeed);
+
+        // Lengthening
+        if (desiredDistance > joint.distance) {
+            // Stop if too long
+            float ropeRemaining = maxRopeLength.value - ropeSystem.ropeLength;
+            if (ropeRemaining <= 0) {
+                return;
+            }
+            // Stop if colliding below
+            if (collisionPoint != Vector2.zero && Vector2.Dot(Vector2.up, collisionPoint - playerPos) < 0) {
+                return;
+            }
+        }
+
+        // Shortening
+        if (desiredDistance < joint.distance) {
+            // Stop if too short
+            if (desiredDistance < 0.5f) {
+                return;
+            }
+        }
+
+
+        joint.distance = desiredDistance;
+    }
+
+    private void OnCollisionEnter2D(Collision2D other)
+    {
+        collidedRecently = 0.5f;
+        collisionPoint = other.contacts[0].point;
+        collisionNormal = other.contacts[0].normal;
+    }
+
+    private void OnCollisionExit2D(Collision2D other)
+    {
+        collisionPoint = Vector2.zero;
+        collisionNormal = Vector2.zero;
+    }
+
+    // private void OnDrawGizmos() {
+    //     Gizmos.color = Color.yellow;
+    //     Gizmos.DrawWireSphere(collisionPoint, 0.5f);
+    // }
 }
