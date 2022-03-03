@@ -44,7 +44,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 16
@@ -2859,8 +2859,8 @@ TextureImporter:
       tileset_94: 1444368169
       tileset_84: -1856889679
       tileset_68: -450247006
-      tileset_48: -1562006655
       SunnyLandTileset: -795031954
+      tileset_48: -1562006655
       tileset_12: 667186053
       tileset_30: -704794672
       tileset_41: 403504804

@@ -13,8 +13,8 @@ TagManager:
   - 
   - Water
   - UI
-  - Collidable Terrain
-  - Background Terrain
+  - Attachable Terrain
+  - 
   - 
   - 
   - 
@@ -42,6 +42,9 @@ TagManager:
   m_SortingLayers:
   - name: Background
     uniqueID: 4231539109
+    locked: 0
+  - name: World Background
+    uniqueID: 2853502561
     locked: 0
   - name: World
     uniqueID: 3033257839

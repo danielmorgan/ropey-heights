@@ -21,11 +21,9 @@ public class Collectable : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D target)
     {
-        Debug.Log("OnTriggerEnter2D");
         animator.SetTrigger("collect");
         audioSource.clip = pickupSound;
         if (!audioSource.isPlaying) {
-            Debug.Log("play");
             audioSource.Play();
         }
     }

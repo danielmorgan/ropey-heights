@@ -26,7 +26,7 @@ public class AimController : MonoBehaviour
 
     private void Awake()
     {
-        terrainMask = LayerMask.GetMask("Collidable Terrain");
+        terrainMask = LayerMask.GetMask("Attachable Terrain");
         aimLineMaterial = aimLine.GetComponent<Renderer>().material;
     }
 
@@ -60,7 +60,8 @@ public class AimController : MonoBehaviour
 
         // Aiming at something hookable
         RaycastHit2D hit = Physics2D.Raycast(playerPos, aimDirection, grappleRange.value, terrainMask);
-        if (hit.collider != null && hit.collider.gameObject.tag == "Hookable") {
+        // if (hit.collider != null && hit.collider.gameObject.tag == "Hookable") {
+        if (hit.collider != null) {
             reticle.transform.position = hit.point;
             aimLine.positionCount = 2;
             aimLine.SetPosition(0, playerPos);
