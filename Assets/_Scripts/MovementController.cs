@@ -20,6 +20,7 @@ public class MovementController : MonoBehaviour
     private float swingForce = 10f;
     private float rappelSpeed = 0.15f;
     private float jumpForce = 13f;
+    private float defaultJumpBuffer = 0.1f;
 
     private Rigidbody2D rb;
     private GrappleController grappleController;
@@ -85,13 +86,13 @@ public class MovementController : MonoBehaviour
 
     public void HandleJump(InputAction.CallbackContext context)
     {
-        if (grappleController.state == GrappleState.Attached) {
-            ropeSystem.Reset();
-            grappleController.Release();
-        }
-
         if (context.performed) {
-            shouldJumpBuffer = 0.2f;
+            if (grappleController.state == GrappleState.Attached) {
+                ropeSystem.Reset();
+                grappleController.Release();
+            } else {
+                shouldJumpBuffer = defaultJumpBuffer;
+            }
         }
     }
 
