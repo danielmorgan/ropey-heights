@@ -14,12 +14,12 @@ public class MovementController : MonoBehaviour
     [SerializeField]
     private FloatValue maxRopeLength;
 
-    private float runSpeed = 12f;
-    private float runAcceleration = 3f;
-    private float runDeceleration = 6f;
-    private float swingForce = 8f;
+    private float runSpeed = 15f;
+    private float runAcceleration = 4f;
+    private float runDeceleration = 1f;
+    private float swingForce = 10f;
     private float rappelSpeed = 0.15f;
-    private float jumpForce = 8f;
+    private float jumpForce = 13f;
 
     private Rigidbody2D rb;
     private GrappleController grappleController;
@@ -151,7 +151,7 @@ public class MovementController : MonoBehaviour
         float targetSpeed = x * runSpeed;
         float speedDiff = targetSpeed - rb.velocity.x;
         float acceleration = Mathf.Abs(targetSpeed) > 0 ? runAcceleration : runDeceleration;
-        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.9f) * Mathf.Sign(speedDiff);
+        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.95f) * Mathf.Sign(speedDiff);
         rb.AddForce(Vector2.right * force);
     }
 
@@ -160,7 +160,7 @@ public class MovementController : MonoBehaviour
         float targetSpeed = x * (runSpeed / 1);
         float speedDiff = targetSpeed - rb.velocity.x;
         float acceleration = Mathf.Abs(targetSpeed) > 0 ? runAcceleration : runDeceleration;
-        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.9f) * Mathf.Sign(speedDiff);
+        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.95f) * Mathf.Sign(speedDiff);
         rb.AddForce(Vector2.right * force);
     }
 

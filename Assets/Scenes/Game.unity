@@ -332,7 +332,7 @@ Camera:
   far clip plane: 5000
   field of view: 40
   orthographic: 1
-  orthographic size: 10
+  orthographic size: 8.4375
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -12110,7 +12110,7 @@ AudioSource:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1877304476}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 4d6ac4e58ff4e6e4eb9444dc89d40e91, type: 3}
@@ -15248,10 +15248,6 @@ PrefabInstance:
     - target: {fileID: 3575189987748440995, guid: 2be1a72f6fe65fb4d9297557e0dde295, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4968116352766638850, guid: 2be1a72f6fe65fb4d9297557e0dde295, type: 3}
-      propertyPath: m_GravityScale
-      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8184265132436504796, guid: 2be1a72f6fe65fb4d9297557e0dde295, type: 3}
       propertyPath: mainCam
