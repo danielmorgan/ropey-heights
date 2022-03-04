@@ -7,10 +7,11 @@ using UnityEngine;
 [RequireComponent(typeof(DistanceJoint2D))]
 public class RopeSystem : MonoBehaviour
 {
+    [SerializeField]
+    private LayerMask terrainMask;
     private LineRenderer lineRenderer;
     private DistanceJoint2D joint;
     private GrappleController grappleController;
-    private LayerMask terrainMask;
     public GameObject anchor { get; private set; }
 
     private Vector2 ropeOrigin { get => grappleController.hook.ropeOrigin; }
@@ -19,7 +20,7 @@ public class RopeSystem : MonoBehaviour
     private List<Vector3> ropePositions = new List<Vector3>();
     private Dictionary<Vector3, int> wrapPoints = new Dictionary<Vector3, int>();
     private bool distanceSet;
-    [SerializeField] public float ropeLength { get; private set; } = 0f;
+    public float ropeLength { get; private set; } = 0f;
 
     [SerializeField]
     private FloatValue grappleRange;
@@ -30,7 +31,6 @@ public class RopeSystem : MonoBehaviour
         lineRenderer = GetComponent<LineRenderer>();
         joint = GetComponent<DistanceJoint2D>();
         grappleController = GetComponent<GrappleController>();
-        terrainMask = LayerMask.GetMask("Collidable Terrain");
 
         // Set up anchor point for DistanceJoint2D
         anchor = new GameObject("Anchor", typeof(Rigidbody2D));

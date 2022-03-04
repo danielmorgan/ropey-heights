@@ -21,12 +21,12 @@ public class AimController : MonoBehaviour
     public Vector2? target { get; private set; }
     private Vector2 aimPoint;
     
+    [SerializeField]
     private LayerMask terrainMask;
     private Material aimLineMaterial;
 
     private void Awake()
     {
-        terrainMask = LayerMask.GetMask("Attachable Terrain");
         aimLineMaterial = aimLine.GetComponent<Renderer>().material;
     }
 

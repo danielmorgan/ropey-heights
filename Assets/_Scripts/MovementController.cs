@@ -1,22 +1,31 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Events;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(GrappleController))]
 [RequireComponent(typeof(RopeSystem))]
 [RequireComponent(typeof(DistanceJoint2D))]
+[RequireComponent(typeof(AnimationStateController))]
 public class MovementController : MonoBehaviour
 {
-    private float swingForce = 15f;
-    private float rappelSpeed = 0.2f;
-    private float pushOffForce = 15f;
+    [SerializeField]
+    private LayerMask terrainMask;
     [SerializeField]
     private FloatValue maxRopeLength;
+
+    private float runSpeed = 12f;
+    private float runAcceleration = 3f;
+    private float runDeceleration = 6f;
+    private float swingForce = 8f;
+    private float rappelSpeed = 0.15f;
+    private float jumpForce = 8f;
 
     private Rigidbody2D rb;
     private GrappleController grappleController;
     private RopeSystem ropeSystem;
     private DistanceJoint2D joint;
+    private AnimationStateController animationStateController;
 
     private Vector2 playerPos { get => (Vector2) this.transform.position; }
     private Vector2 anchorPos { get => (Vector2) ropeSystem.anchor.transform.position; }
@@ -24,11 +33,11 @@ public class MovementController : MonoBehaviour
     private float y;
     
     private bool anchorBelowPlayer;
+
+    private bool grounded;
     private float shouldJumpBuffer;
 
-    private Vector2 collisionPoint;
-    private Vector2 collisionNormal;
-    private float collidedRecently;
+    public UnityEvent Landed;
 
     private void Awake()
     {
@@ -36,9 +45,10 @@ public class MovementController : MonoBehaviour
         grappleController = GetComponentInParent<GrappleController>();
         ropeSystem = GetComponentInParent<RopeSystem>();
         joint = GetComponent<DistanceJoint2D>();
+        animationStateController = GetComponent<AnimationStateController>();
     }
 
-    public void HandleSwing(InputAction.CallbackContext context)
+    public void HandleX(InputAction.CallbackContext context)
     {
         if (context.started) {
             return;
@@ -55,7 +65,7 @@ public class MovementController : MonoBehaviour
         }
     }
 
-    public void HandleRappel(InputAction.CallbackContext context)
+    public void HandleY(InputAction.CallbackContext context)
     {
         if (!context.performed) {
             y = 0;
@@ -69,11 +79,17 @@ public class MovementController : MonoBehaviour
     {
         if (context.performed) {
             ropeSystem.Reset();
+            grappleController.Release();
         }
     }
 
     public void HandleJump(InputAction.CallbackContext context)
     {
+        if (grappleController.state == GrappleState.Attached) {
+            ropeSystem.Reset();
+            grappleController.Release();
+        }
+
         if (context.performed) {
             shouldJumpBuffer = 0.2f;
         }
@@ -81,38 +97,71 @@ public class MovementController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Reset collisions
-        collidedRecently -= Time.fixedDeltaTime;
-        if (collidedRecently < 0) {
-            collidedRecently = 0;
-            collisionPoint = Vector2.zero;
-            collisionNormal = Vector2.zero;
+        CheckGrounded();
+
+        Jump();
+     
+        if (grappleController.state == GrappleState.Attached && x != 0) {
+            Swing(x);
+        }
+        if (grappleController.state == GrappleState.Attached && y != 0) {
+            Rappel(y);
+        }
+        if (grounded) {
+            Run(x);
+        }
+        if (grappleController.state != GrappleState.Attached && !grounded) {
+            ControlInAir(x);
         }
 
-        // Jump
+        animationStateController.inputX = x;
+        animationStateController.velocity = rb.velocity;
+        animationStateController.normalisedRunSpeed = rb.velocity.x / runSpeed;
+    }
+
+    private void Jump()
+    {
         if (shouldJumpBuffer > 0) {
             shouldJumpBuffer -= Time.fixedDeltaTime;
-            if (collisionNormal != Vector2.zero) {
-                rb.AddForce(collisionNormal * pushOffForce, ForceMode2D.Impulse);
+            if (grounded) {
+                rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
                 shouldJumpBuffer = 0;
             }
         } else {
             shouldJumpBuffer = 0;
         }
-     
-        if (grappleController.state != GrappleState.Attached) {
-            return;
-        }
+    }
 
-        // Swing
-        if (x != 0) {
-            Swing(x);
-        }
-        // rb.AddForce(rb.velocity * -0.1f);
+    private void CheckGrounded()
+    {
+        bool wasGrounded = grounded;
+        grounded = false;
 
-        if (y != 0) {
-            Rappel(y);
+        Collider2D collider = Physics2D.OverlapCircle(playerPos + Vector2.down, 0.25f, terrainMask);
+        if (collider != null) {
+            grounded = true;
+            if (!wasGrounded && grounded) {
+                Landed.Invoke();
+            }
         }
+    }
+
+    private void Run(float x)
+    {
+        float targetSpeed = x * runSpeed;
+        float speedDiff = targetSpeed - rb.velocity.x;
+        float acceleration = Mathf.Abs(targetSpeed) > 0 ? runAcceleration : runDeceleration;
+        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.9f) * Mathf.Sign(speedDiff);
+        rb.AddForce(Vector2.right * force);
+    }
+
+    private void ControlInAir(float x)
+    {
+        float targetSpeed = x * (runSpeed / 1);
+        float speedDiff = targetSpeed - rb.velocity.x;
+        float acceleration = Mathf.Abs(targetSpeed) > 0 ? runAcceleration : runDeceleration;
+        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.9f) * Mathf.Sign(speedDiff);
+        rb.AddForce(Vector2.right * force);
     }
 
     private void Swing(float x)
@@ -135,6 +184,9 @@ public class MovementController : MonoBehaviour
 
     private void Rappel(float y)
     {
+        Vector2 direction = (anchorPos - playerPos).normalized;
+        anchorBelowPlayer = Mathf.Sign(direction.y) > 0;
+
         float desiredDistance = joint.distance + (y * rappelSpeed);
 
         // Lengthening
@@ -144,8 +196,8 @@ public class MovementController : MonoBehaviour
             if (ropeRemaining <= 0) {
                 return;
             }
-            // Stop if colliding below
-            if (collisionPoint != Vector2.zero && Vector2.Dot(Vector2.up, collisionPoint - playerPos) < 0) {
+            // Stop if colliding below and anchor is above
+            if (grounded && anchorBelowPlayer) {
                 return;
             }
         }
@@ -158,25 +210,11 @@ public class MovementController : MonoBehaviour
             }
         }
 
-
         joint.distance = desiredDistance;
     }
 
-    private void OnCollisionEnter2D(Collision2D other)
-    {
-        collidedRecently = 0.5f;
-        collisionPoint = other.contacts[0].point;
-        collisionNormal = other.contacts[0].normal;
+    private void OnDrawGizmos() {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(playerPos + Vector2.down, 0.25f);
     }
-
-    private void OnCollisionExit2D(Collision2D other)
-    {
-        collisionPoint = Vector2.zero;
-        collisionNormal = Vector2.zero;
-    }
-
-    // private void OnDrawGizmos() {
-    //     Gizmos.color = Color.yellow;
-    //     Gizmos.DrawWireSphere(collisionPoint, 0.5f);
-    // }
 }

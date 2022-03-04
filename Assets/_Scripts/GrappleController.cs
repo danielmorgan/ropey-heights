@@ -107,7 +107,7 @@ public class GrappleController : MonoBehaviour
         state = GrappleState.Firing;
     }
 
-    private void Release()
+    public void Release()
     {
         GrappleReleased.Invoke();
         Return();
