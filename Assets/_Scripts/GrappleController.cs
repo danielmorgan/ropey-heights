@@ -45,13 +45,12 @@ public class GrappleController : MonoBehaviour
 
     public void HandleGrappleFired(InputAction.CallbackContext context)
     {
-        if (!context.performed) return;
-
-        if (state != GrappleState.Inactive) {
+        if (context.canceled && state != GrappleState.Inactive) {
             Release();
         }
 
-        if (aimController.aimDirection != Vector2.zero) {
+        bool isAiming = aimController.aimDirection != Vector2.zero;
+        if (context.performed && isAiming) {
             Fire();
         }
     }

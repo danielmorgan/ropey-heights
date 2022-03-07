@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(GrappleController))]
 public class AimController : MonoBehaviour
 {
     [SerializeField]
@@ -25,16 +26,26 @@ public class AimController : MonoBehaviour
     private LayerMask terrainMask;
     private Material aimLineMaterial;
 
+    private float aimInputResetTimer;
+    private float defaultAimInputResetTime = 1.5f;
+
+    private GrappleController grappleController;
+
     private void Awake()
     {
         aimLineMaterial = aimLine.GetComponent<Renderer>().material;
+        grappleController = GetComponent<GrappleController>();
     }
 
     public void HandleAim(InputAction.CallbackContext context)
     {
-        aimDirection = context.ReadValue<Vector2>();
-        reticle.gameObject.SetActive(true);
-        aimLine.gameObject.SetActive(true);
+        if (context.performed) {
+            aimDirection = context.ReadValue<Vector2>();
+            reticle.gameObject.SetActive(true);
+            aimLine.gameObject.SetActive(true);
+
+            aimInputResetTimer = defaultAimInputResetTime;
+        }
     }
 
     public void HandlePointAim(InputAction.CallbackContext context)
@@ -44,17 +55,30 @@ public class AimController : MonoBehaviour
         aimDirection = (aimPoint - playerPos).normalized;
         reticle.gameObject.SetActive(true);
         aimLine.gameObject.SetActive(true);
+
+        aimInputResetTimer = defaultAimInputResetTime;
     }
 
     private void Update()
     {
+        // Stop aiming if grappling
+        // if (grappleController.state == GrappleState.Firing || grappleController.state == GrappleState.Attached) {
+        //     ResetAim();
+        //     return;
+        // }
+
+        // Stop aiming if no input for a while
+        if (aimInputResetTimer > 0) {
+            aimInputResetTimer -= Time.deltaTime;
+        } else {
+            aimInputResetTimer = 0;
+            ResetAim();
+            return;
+        }
+
         // Not aiming
         if (aimDirection.magnitude < 0.1f) {
-            aimDirection = Vector2.zero;
-            target = null;
-            reticle.gameObject.SetActive(false);
-            aimLine.gameObject.SetActive(false);
-            aimLine.positionCount = 0;
+            ResetAim();
             return;
         }
 
@@ -78,5 +102,14 @@ public class AimController : MonoBehaviour
         aimLine.SetPosition(1, reticle.transform.position);
         aimLineMaterial.SetColor("_Color", defaultLineColor);
         target = null;
+    }
+
+    private void ResetAim()
+    {
+        aimDirection = Vector2.zero;
+        target = null;
+        reticle.gameObject.SetActive(false);
+        aimLine.gameObject.SetActive(false);
+        aimLine.positionCount = 0;
     }
 }

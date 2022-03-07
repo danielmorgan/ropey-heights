@@ -50,6 +50,7 @@ public class GameManager : Singleton<GameManager>
         if (state == GameState.END_SCREEN) {
             state = GameState.PLAYING;
             SceneManager.LoadScene("Game");
+            time = 0;
         }
     }
 }

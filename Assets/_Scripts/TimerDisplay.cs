@@ -15,6 +15,6 @@ public class TimerDisplay : MonoBehaviour
     private void Update()
     {
         TimeSpan ts = TimeSpan.FromSeconds(GameManager.Instance.time);
-        timerText.text = ts.ToString("mm\\:ss") + "<alpha=#CC><size=70%>" + ts.ToString("\\.f") + "</size>";
+        timerText.text = ts.ToString("mm\\:ss") + "<alpha=#CC><size=70%>" + ts.ToString("\\.ff") + "</size>";
     }
 }
