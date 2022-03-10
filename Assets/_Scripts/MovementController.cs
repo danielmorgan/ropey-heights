@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Events;
@@ -16,11 +17,12 @@ public class MovementController : MonoBehaviour
 
     private float runSpeed = 15f;
     private float runAcceleration = 4f;
-    private float runDeceleration = 1f;
-    private float swingForce = 10f;
+    private float runDeceleration = 0.5f;
+    private float swingForce = 55f;
     private float rappelSpeed = 0.15f;
-    private float jumpForce = 13f;
+    private float jumpForce = 12f;
     private float defaultJumpBuffer = 0.1f;
+    private float hangTime = 0.2f;
 
     private Rigidbody2D rb;
     private GrappleController grappleController;
@@ -32,17 +34,17 @@ public class MovementController : MonoBehaviour
     private Vector2 anchorPos { get => (Vector2) ropeSystem.anchor.transform.position; }
     private float x;
     private float y;
-    
     private bool anchorBelowPlayer;
-
     private bool grounded;
     private float shouldJumpBuffer;
+    private float defaultGravity;
 
     public UnityEvent Landed;
 
     private void Awake()
     {
         rb = GetComponentInParent<Rigidbody2D>();
+        defaultGravity = rb.gravityScale;
         grappleController = GetComponentInParent<GrappleController>();
         ropeSystem = GetComponentInParent<RopeSystem>();
         joint = GetComponent<DistanceJoint2D>();
@@ -76,28 +78,23 @@ public class MovementController : MonoBehaviour
         y = context.ReadValue<float>();
     }
 
-    public void HandleRelease(InputAction.CallbackContext context)
+    public void HandleJump(InputAction.CallbackContext context)
     {
-        if (context.performed) {
-            ropeSystem.Reset();
-            grappleController.Release();
+        if (context.performed && grappleController.state != GrappleState.Attached) {
+            shouldJumpBuffer = defaultJumpBuffer;
         }
     }
 
-    public void HandleJump(InputAction.CallbackContext context)
+    public void OnGrappleReleased()
     {
-        if (context.performed) {
-            if (grappleController.state == GrappleState.Attached) {
-                ropeSystem.Reset();
-                grappleController.Release();
-            } else {
-                shouldJumpBuffer = defaultJumpBuffer;
-            }
-        }
+        StartCoroutine(LowerGravity());
     }
 
     private void FixedUpdate()
     {
+        // float magnitude = 1f / rb.velocity.magnitude;
+        // DebugText.Instance.Set(magnitude.ToString("0"));
+
         CheckGrounded();
 
         Jump();
@@ -105,7 +102,7 @@ public class MovementController : MonoBehaviour
         if (grappleController.state == GrappleState.Attached && x != 0) {
             Swing(x);
         }
-        if (grappleController.state == GrappleState.Attached && y != 0) {
+        if (grappleController.state == GrappleState.Attached) {
             Rappel(y);
         }
         if (grounded) {
@@ -179,12 +176,16 @@ public class MovementController : MonoBehaviour
         } else if (anchorBelowPlayer && x < 0) {
             perpendicular = new Vector2(-direction.y, direction.x);
         }
-        // Debug.DrawRay(playerPos, perpendicular, Color.black);
-        rb.AddForce(perpendicular * Mathf.Abs(x) * swingForce);
+        // Make the swing stronger when we're moving slower, so that we can build up momentum quicker from a stand still,
+        // but limit how much force we can apply when moving fast. This should have the effect of applying the most force
+        // at the extreme positions, like leaning on a swing when you're at the highest point.
+        float modifiedSwingForce = Mathf.Clamp((1f / rb.velocity.magnitude), 0f, 1f) * swingForce;
+        rb.AddForce(perpendicular * Mathf.Abs(x) * modifiedSwingForce);
     }
 
     private void Rappel(float y)
     {
+       // Handle input
         Vector2 direction = (anchorPos - playerPos).normalized;
         anchorBelowPlayer = Mathf.Sign(direction.y) > 0;
 
@@ -212,6 +213,13 @@ public class MovementController : MonoBehaviour
         }
 
         joint.distance = desiredDistance;
+    }
+
+    private IEnumerator LowerGravity()
+    {
+        rb.gravityScale = defaultGravity / 2f;
+        yield return new WaitForSeconds(hangTime);
+        rb.gravityScale = defaultGravity;
     }
 
     private void OnDrawGizmos() {
