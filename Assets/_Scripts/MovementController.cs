@@ -19,7 +19,9 @@ public class MovementController : MonoBehaviour
     private float runAcceleration = 4f;
     private float runDeceleration = 0.5f;
     private float swingForce = 55f;
-    private float rappelSpeed = 0.15f;
+    private float rappelAcceleration = 0.005f;
+    private float rappelDeceleration = 0.005f;
+    private float rappelMaxSpeed = 0.15f;
     private float jumpForce = 12f;
     private float defaultJumpBuffer = 0.1f;
     private float hangTime = 0.2f;
@@ -38,6 +40,12 @@ public class MovementController : MonoBehaviour
     private bool grounded;
     private float shouldJumpBuffer;
     private float defaultGravity;
+    // private Tweener rappelTween;
+    // private bool rappelLengthShouldChange;
+    // private float desiredRappelDistance;
+    // private float lastRappelInput;
+    // private float currentDistance;
+    // private float rappelSpeed;
 
     public UnityEvent Landed;
 
@@ -87,11 +95,21 @@ public class MovementController : MonoBehaviour
 
     public void OnGrappleReleased()
     {
-        StartCoroutine(LowerGravity());
+        if (rb.velocity.y > 3f) {
+            StartCoroutine(LowerGravity());
+        }
     }
+
+    // private void Update()
+    // {
+    //     if (y != 0) {
+    //         desiredRappelDistance = joint.distance + (y * rappelMaxSpeed);
+    //     }
+    // }
 
     private void FixedUpdate()
     {
+        // DebugText.Instance.Set(rb.velocity.y.ToString(), rb.velocity.y > 3f ? Color.green : Color.white);
         // float magnitude = 1f / rb.velocity.magnitude;
         // DebugText.Instance.Set(magnitude.ToString("0"));
 
@@ -116,6 +134,15 @@ public class MovementController : MonoBehaviour
         animationStateController.velocity = rb.velocity;
         animationStateController.normalisedRunSpeed = rb.velocity.x / runSpeed;
     }
+
+    // private void Update()
+    // {
+    //     float duration = 3f;
+    //     float time = Mathf.Clamp(Mathf.Abs(lastRappelInput - Time.time), 0, 1);
+    //     // time = Mathf.Sin(time * 0.5f * Mathf.PI);
+    //     DebugText.Instance.Set(currentDistance.ToString() + " -> " + desiredRappelDistance.ToString() + ", " + time.ToString() + " = " + Mathf.Lerp(currentDistance, desiredRappelDistance, time));
+    //     joint.distance = Mathf.Lerp(currentDistance, desiredRappelDistance, time);
+    // }
 
     private void Jump()
     {
@@ -185,11 +212,18 @@ public class MovementController : MonoBehaviour
 
     private void Rappel(float y)
     {
-       // Handle input
+        // if (Mathf.Abs(y) > 0) {
+        //     rappelSpeed += rappelAcceleration;
+        // } else {
+        //     rappelSpeed -= rappelDeceleration;
+        // }
+        // rappelSpeed = Mathf.Clamp(rappelSpeed, 0, rappelMaxSpeed);
+        // DebugText.Instance.Set(rappelSpeed.ToString());
+        float desiredDistance = joint.distance + (y * rappelMaxSpeed);
+
+        // Handle input
         Vector2 direction = (anchorPos - playerPos).normalized;
         anchorBelowPlayer = Mathf.Sign(direction.y) > 0;
-
-        float desiredDistance = joint.distance + (y * rappelSpeed);
 
         // Lengthening
         if (desiredDistance > joint.distance) {
@@ -213,6 +247,25 @@ public class MovementController : MonoBehaviour
         }
 
         joint.distance = desiredDistance;
+        // joint.distance = Mathf.Lerp(joint.distance, desiredRappelDistance, rappelSpeed);
+
+        // desiredRappelDistance = desiredDistance;
+        // currentDistance = joint.distance;
+
+        // if (currentDistance != desiredRappelDistance) {
+
+            
+        //     float time = Mathf.Clamp(Mathf.Abs(lastRappelInput - Time.time), 0, 1);
+        //     time = Mathf.Sin(time * 0.5f * Mathf.PI);
+        //     DebugText.Instance.Set(currentDistance.ToString() + " -> " + desiredRappelDistance.ToString() + ", " + time.ToString() + " = " + Mathf.Lerp(currentDistance, desiredRappelDistance, time));
+        //     joint.distance = Mathf.Lerp(currentDistance, desiredRappelDistance, time);
+
+        //     // float duration = 3f;
+        //     // float time = Mathf.Clamp(Mathf.Abs(lastRappelInput - Time.time), 0, 1);
+        //     // // time = Mathf.Sin(time * 0.5f * Mathf.PI);
+        //     // DebugText.Instance.Set(joint.distance.ToString() + " -> " + desiredDistance.ToString() + ", " + time.ToString() + " = " + Mathf.Lerp(joint.distance, desiredDistance, time));
+        //     // joint.distance = Mathf.Lerp(joint.distance, desiredDistance, time);
+        // }
     }
 
     private IEnumerator LowerGravity()

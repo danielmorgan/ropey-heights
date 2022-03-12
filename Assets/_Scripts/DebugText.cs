@@ -13,8 +13,9 @@ public class DebugText : Singleton<DebugText>
         text = GetComponent<TMP_Text>();
     }
 
-    public void Set(string _text)
+    public void Set(string _text, Color? _color = null)
     {
         text.text = _text;
+        text.color = _color ?? Color.white;
     }
 }
