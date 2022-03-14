@@ -15,16 +15,17 @@ public class MovementController : MonoBehaviour
     [SerializeField]
     private FloatValue maxRopeLength;
 
-    private float runSpeed = 15f;
-    private float runAcceleration = 4f;
-    private float runDeceleration = 0.5f;
-    private float swingForce = 55f;
+    private float runSpeed = 14f;
+    private float runAcceleration = 3f;
+    private float runDeceleration = 0.3f;
+    private float airControlAcceleration = 3f;
+    private float swingForce = 60f;
     private float rappelAcceleration = 0.005f;
     private float rappelDeceleration = 0.005f;
     private float rappelMaxSpeed = 0.15f;
-    private float jumpForce = 12f;
+    private float jumpForce = 13f;
     private float defaultJumpBuffer = 0.1f;
-    private float hangTime = 0.2f;
+    private float hangTime = 0.25f;
 
     private Rigidbody2D rb;
     private GrappleController grappleController;
@@ -126,7 +127,7 @@ public class MovementController : MonoBehaviour
         if (grounded) {
             Run(x);
         }
-        if (grappleController.state != GrappleState.Attached && !grounded) {
+        if (grappleController.state != GrappleState.Attached && !grounded && x != 0) {
             ControlInAir(x);
         }
 
@@ -184,8 +185,7 @@ public class MovementController : MonoBehaviour
     {
         float targetSpeed = x * (runSpeed / 1);
         float speedDiff = targetSpeed - rb.velocity.x;
-        float acceleration = Mathf.Abs(targetSpeed) > 0 ? runAcceleration : runDeceleration;
-        float force = Mathf.Pow(Mathf.Abs(speedDiff) * acceleration, 0.95f) * Mathf.Sign(speedDiff);
+        float force = Mathf.Pow(Mathf.Abs(speedDiff) * airControlAcceleration, 0.95f) * Mathf.Sign(speedDiff);
         rb.AddForce(Vector2.right * force);
     }
 
@@ -270,7 +270,7 @@ public class MovementController : MonoBehaviour
 
     private IEnumerator LowerGravity()
     {
-        rb.gravityScale = defaultGravity / 2f;
+        rb.gravityScale = defaultGravity / 3f;
         yield return new WaitForSeconds(hangTime);
         rb.gravityScale = defaultGravity;
     }

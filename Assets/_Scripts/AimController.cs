@@ -68,13 +68,13 @@ public class AimController : MonoBehaviour
         // }
 
         // Stop aiming if no input for a while
-        if (aimInputResetTimer > 0) {
-            aimInputResetTimer -= Time.deltaTime;
-        } else {
-            aimInputResetTimer = 0;
-            ResetAim();
-            return;
-        }
+        // if (aimInputResetTimer > 0) {
+        //     aimInputResetTimer -= Time.deltaTime;
+        // } else {
+        //     aimInputResetTimer = 0;
+        //     ResetAim();
+        //     return;
+        // }
 
         // Not aiming
         if (aimDirection.magnitude < 0.1f) {
