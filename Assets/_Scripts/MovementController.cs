@@ -15,10 +15,10 @@ public class MovementController : MonoBehaviour
     [SerializeField]
     private FloatValue maxRopeLength;
 
-    private float runSpeed = 14f;
-    private float runAcceleration = 3f;
-    private float runDeceleration = 0.3f;
-    private float airControlAcceleration = 3f;
+    private float runSpeed = 15f;
+    private float runAcceleration = 4f;
+    private float runDeceleration = 0.4f;
+    private float airControlAcceleration = 1f;
     private float swingForce = 60f;
     private float rappelAcceleration = 0.005f;
     private float rappelDeceleration = 0.005f;
