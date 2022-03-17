@@ -13,6 +13,7 @@ public class GameManager : Singleton<GameManager>
 {
     public GameState state { get; private set; }
     public float time { get; private set; }
+    public float fastestTime { get; private set; }
     [SerializeField]
     private List<GameObject> dontDestroy;
 
@@ -28,6 +29,8 @@ public class GameManager : Singleton<GameManager>
                 state = GameState.END_SCREEN;
                 break;
         }
+
+        fastestTime = PlayerPrefs.GetFloat("fastestTime");
     }
 
     private void Update()
@@ -41,6 +44,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (state == GameState.PLAYING) {
             state = GameState.END_SCREEN;
+            RecordTime();
             SceneManager.LoadScene("EndScreen");
         }
     }
@@ -51,6 +55,14 @@ public class GameManager : Singleton<GameManager>
             state = GameState.PLAYING;
             SceneManager.LoadScene("Game");
             time = 0;
+        }
+    }
+
+    private void RecordTime()
+    {
+        if (fastestTime == 0 || time < fastestTime) {
+            PlayerPrefs.SetFloat("fastestTime", time);
+            fastestTime = time;
         }
     }
 }
