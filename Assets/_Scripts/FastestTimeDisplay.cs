@@ -15,11 +15,11 @@ public class FastestTimeDisplay : MonoBehaviour
     private void Update()
     {
         if (GameManager.Instance.fastestTime > 0) {
-            timerText.enabled = true;
+            // timerText.enabled = true;
             TimeSpan ts = TimeSpan.FromSeconds(GameManager.Instance.fastestTime);
-            timerText.text = "Fastest: " + ts.ToString("mm\\:ss") + "<alpha=#CC><size=70%>" + ts.ToString("\\.ff") + "</size>";
+            timerText.text = ts.ToString("mm\\:ss") + "<alpha=#CC><size=70%>" + ts.ToString("\\.ff") + "</size>";
         } else {
-            timerText.enabled = false;
+            timerText.text = "N/A";
         }
     }
 }
